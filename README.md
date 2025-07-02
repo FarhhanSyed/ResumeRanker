@@ -14,8 +14,6 @@
 | File Handling | Multer (for uploading resumes as PDFs) |
 | PDF Parsing | PyPDF2                   |
 
----
-
 
 ---
 

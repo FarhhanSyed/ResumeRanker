@@ -1,14 +1,18 @@
 import React from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Upload } from "lucide-react";
-// import axios from "axios";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const UploadForm = () => {
+  const navigate = useNavigate();
   const [resumefileName, setResumeFileName] = useState("");
   const [jdfileName, setJdFileName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     resume: null,
     jd: null,
@@ -16,11 +20,28 @@ const UploadForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     let data = new FormData();
     data.append("resume", formData.resume);
     data.append("jd", formData.jd);
     // console.log(data.get("resume"));
-    
+    try {
+      const response = await axios.post("/api/upload", data, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const scores = response.data;
+      console.log(scores);
+      navigate("/result", {
+        state: {
+          skillsMatch: scores.skillsMatch,
+          experienceRelevance: scores.experienceRelevance,
+          finalScore: scores.finalScore,
+        },
+      });
+    } catch (err) {
+      console.error("Upload failed:", err.response?.data || err.message);
+    }
   };
 
   const handleChange = (e) => {
@@ -126,7 +147,24 @@ const UploadForm = () => {
                 </div>
               </div>
             </div>
-            <button>Start Analysis</button>
+            <div className="text-center">
+              {resumefileName && jdfileName && (
+                <div className="mx-auto text-center">
+                  {loading ? (
+                    <p className="text-blue-600 font-semibold text-lg animate-pulse mt-4">
+                       Calculating score... Please wait
+                    </p>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="bg-blue-600 rounded cursor-pointer text-white px-4 py-2 font-semibold"
+                    >
+                      Start Analysis
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </form>
         </div>
       </div>
